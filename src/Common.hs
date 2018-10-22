@@ -7,6 +7,7 @@ import Control.Monad.Except
 import Control.Monad.Reader
 import Control.Monad.State
 import Control.Monad.Writer (WriterT(..), Writer(..), tell, censor, runWriterT, runWriter, Monoid(..))
+import qualified Control.Monad.Fail as Fail
 import Data.Maybe (fromMaybe)
 import Printer.Common
 import Syntax.Common
@@ -47,7 +48,7 @@ instance Functor SnocList
 
 instance Semigroup (SnocList t)
     where (<>) = mappend
-    
+
 instance Monoid (SnocList t)
     where mempty                 = Lin
           mappend ts Lin         = ts
@@ -153,6 +154,10 @@ instance MonadBase Base
               Base (censor (fmap transform) c
                         `catchError` \(Error mpos err) -> throwError (Error mpos (d err)))
               where transform (Warning mpos msg) = Warning mpos (d msg)
+
+
+instance Fail.MonadFail Base where
+  fail s = failWithS s
 
 failWithS :: MonadBase m => String -> m t
 failWithS s = failWith (text s)

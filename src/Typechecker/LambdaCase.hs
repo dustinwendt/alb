@@ -9,6 +9,7 @@ import Printer.Common (text, vcat)
 import Printer.LambdaCase
 import Typechecker.LambdaCasePrims
 import Typechecker.LambdaCaseTyping hiding (type_from_tcon)
+import qualified Control.Monad.Fail as Fail
 
 import Control.Monad
 
@@ -76,6 +77,10 @@ instance Monad TM where
     Ok x    >>= f = f x
     Errs es >>= _ = Errs es
     return        = Ok
+
+-- This should probably be something else
+instance Fail.MonadFail TM where
+  fail = Fail.fail
 
 orTypeFail             :: TM a -> [String] -> TM a
 orTypeFail (Ok x) _    = Ok x

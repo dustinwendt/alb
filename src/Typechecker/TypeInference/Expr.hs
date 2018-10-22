@@ -7,6 +7,7 @@ import Prelude hiding ((<$>))
 import Common
 import Control.Monad
 import Control.Monad.State
+import qualified Control.Monad.Fail as Fail
 import Data.List
 import Data.Map (Map)
 import qualified Data.Map as Map

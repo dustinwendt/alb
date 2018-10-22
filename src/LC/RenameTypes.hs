@@ -14,6 +14,7 @@ import Control.Monad.Reader
 import Control.Monad.State
 import Data.Generics
 import qualified Data.Map as Map
+import qualified Control.Monad.Fail as Fail
 
 import Common
 import Syntax.Common
@@ -70,6 +71,7 @@ renameCtors = everywhereM' (mkM renameCtorsTopDecl `extM` renameCtorsExpr `extM`
 
 type T a = ReaderT TypEnv Base a
 type TypEnv = Map.Map Type Type
+
 
 renameProgramTypes p = liftBase $ runReaderT (do
   env <- build_type_env (topDecls p)
