@@ -137,7 +137,29 @@ atype' = choice [ reservedOp "_" >> return TyWild
                              choice [ do reservedOp ","
                                          ts <- commaSep1 (located type_)
                                          return (TyTuple (t:ts))
-                                    , return (dislocate t) ]) ]
+                                    , return (dislocate t) ])
+                 , brackets (do fs <- commaSep1 field
+                                return (TyTrivRow fs))]
+
+                                -- return TyTrivRow )
+                                -- choice [ do reservedOp ","
+                                --             fs <- commaSep1 (field)
+                                --             return TyTrivRow (f:fs)
+                                --          , return TyTrivRow [f]])]
+
+
+                                -- reservedOp "::"
+                                -- t <- located type_
+                                -- choice [ do reservedOp ","
+                                --             ts <- commaSep1 (located type_)
+                                --             return (TyTrivRow ((l,t):ts))
+                                --             , return TyTrivRow [(l,t)]]) ]
+
+field :: ParseM (Located Id, Located Type)
+field = do l <- located varid
+           reservedOp "::"
+           t <- located type_
+           return (l,t)
 
 typeApp :: ParseM Type
 typeApp = dislocate `fmap` chainl1 (located atype) (return app)

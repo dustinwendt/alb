@@ -21,6 +21,9 @@ data Type = TyCon Id
           | TyLabel Id
           | TySelect (Located Type) (Located Id)
           | TyInfix (Located Type) [(Located Id, Located Type)]
+          | TyTrivRow [(Located Id, Located Type)]
+          | TySimpRow [(Located Id, Located Type)]
+          | TyScopRow [[(Located Id,Located Type)]]
             deriving (Eq, Show, Typeable, Data)
 
 --------------------------------------------------------------------------------
@@ -55,6 +58,9 @@ data Expr = ELet Decls (Located Expr)
           | EStructInit (Located Id) [(Located Id, Located Expr)]
           | ETyped (Located Expr) (Qual Type)
           | EInfix (Located Expr) [(Located Id, Located Expr)]
+          | ETrivRow [(Located Id, Located Expr)]
+          | ESimpRow [(Located Id, Located Expr)]
+          | EScoRow [[(Located Id, Located Expr)]]
             deriving (Eq, Show, Typeable, Data)
 
 data Scrutinee = ScExpr (Located Expr)
