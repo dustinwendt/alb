@@ -138,28 +138,20 @@ atype' = choice [ reservedOp "_" >> return TyWild
                                          ts <- commaSep1 (located type_)
                                          return (TyTuple (t:ts))
                                     , return (dislocate t) ])
-                 , brackets (do fs <- commaSep1 field
-                                return (TyTrivRow fs))]
+                 , brackets (do fs <- commaSep tyrowfield
+                                return (TyTrivRow fs))
+                 , do reserved "simple"
+                      brackets (do fs <- commaSep tyrowfield
+                                   return (TySimpRow fs))
+                 , do reserved "scoped"
+                      brackets (do fs <- commaSep tyrowfield
+                                   return (TyScopRow fs))]
 
-                                -- return TyTrivRow )
-                                -- choice [ do reservedOp ","
-                                --             fs <- commaSep1 (field)
-                                --             return TyTrivRow (f:fs)
-                                --          , return TyTrivRow [f]])]
-
-
-                                -- reservedOp "::"
-                                -- t <- located type_
-                                -- choice [ do reservedOp ","
-                                --             ts <- commaSep1 (located type_)
-                                --             return (TyTrivRow ((l,t):ts))
-                                --             , return TyTrivRow [(l,t)]]) ]
-
-field :: ParseM (Located Id, Located Type)
-field = do l <- located varid
-           reservedOp "::"
-           t <- located type_
-           return (l,t)
+tyrowfield :: ParseM (Located Id, Located Type)
+tyrowfield = do l <- located varid
+                reservedOp "="
+                t <- located type_
+                return (l,t)
 
 typeApp :: ParseM Type
 typeApp = dislocate `fmap` chainl1 (located atype) (return app)
@@ -275,6 +267,13 @@ exprApp  = (do es <- many1 (located aExpr)
                return (dislocate (foldl1 app es))) <?> "application or atomic expression"
     where app e e' = at e (EApp e e')
 
+exprrowfield :: ParseM (Located Id, Located Expr)
+exprrowfield = do l <- located varid
+                  reservedOp "="
+                  e <- located aExpr
+                  return (l,e)
+
+
 aExpr :: ParseM Expr
 aExpr = (do e <- located $ choice [ try (reserved "()") >> return (ECon "Unit")
                                   , do char '#'
@@ -297,7 +296,15 @@ aExpr = (do e <- located $ choice [ try (reserved "()") >> return (ECon "Unit")
                                                choice [ do reservedOp ","
                                                            es <- commaSep (located expr)
                                                            return (ETuple (e:es))
-                                                      , return (dislocate e) ]) ]
+                                                      , return (dislocate e) ])
+                                  , brackets (do fs <- commaSep exprrowfield
+                                                 return (ETrivRow fs))
+                                  , do reserved "simple"
+                                       brackets (do fs <- commaSep exprrowfield
+                                                    return (ESimpRow fs))
+                                  , do reserved "scoped"
+                                       brackets (do fs <- commaSep exprrowfield
+                                                    return (EScopRow fs))]
             fields <- many (try (symbol "." >> located varid) <||> try fieldValues)
             return (dislocate (foldl recordOperations e fields))) <?> "atomic expression"
     where fieldValues = brackets (singleField `sepBy` reservedOp "|")

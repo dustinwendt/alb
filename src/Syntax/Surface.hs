@@ -23,7 +23,7 @@ data Type = TyCon Id
           | TyInfix (Located Type) [(Located Id, Located Type)]
           | TyTrivRow [(Located Id, Located Type)]
           | TySimpRow [(Located Id, Located Type)]
-          | TyScopRow [[(Located Id,Located Type)]]
+          | TyScopRow [(Located Id,Located Type)]
             deriving (Eq, Show, Typeable, Data)
 
 --------------------------------------------------------------------------------
@@ -60,7 +60,7 @@ data Expr = ELet Decls (Located Expr)
           | EInfix (Located Expr) [(Located Id, Located Expr)]
           | ETrivRow [(Located Id, Located Expr)]
           | ESimpRow [(Located Id, Located Expr)]
-          | EScoRow [[(Located Id, Located Expr)]]
+          | EScopRow [(Located Id, Located Expr)]
             deriving (Eq, Show, Typeable, Data)
 
 data Scrutinee = ScExpr (Located Expr)

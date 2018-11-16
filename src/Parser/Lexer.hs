@@ -37,6 +37,7 @@ languageDef  = T.LanguageDef {
                                    , "extends", "fails", "if", "in"
                                    , "infix", "infixl", "infixr"
                                    , "instance", "let", "of", "struct"
+                                   , "simple", "scoped"
                                    , "then", "type", "where"
                                    , "opaque", "primitive", "requires", "volatile", "require" ]
                , T.reservedOpNames = [".","..","::","=","\\","|", "->"
