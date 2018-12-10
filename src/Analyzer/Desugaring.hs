@@ -10,6 +10,7 @@ module Analyzer.Desugaring (desugarProgram, DesugaringState) where
 
 import Control.Monad.Reader
 import Control.Monad.State
+import qualified Control.Monad.Fail as Fail
 import Data.Char (isUpper, isAlpha)
 import Data.Either (partitionEithers)
 import Data.Foldable (foldrM)
@@ -53,6 +54,9 @@ type CtorEnv  = ([(Id, Bool)], [Id])    -- (bitdata ctors (id, nullary), struct 
 
 newtype M t = M { runM :: ReaderT CtorEnv Base t }
     deriving (Functor, Applicative, Monad, MonadBase, MonadReader CtorEnv)
+
+instance Fail.MonadFail M where
+    fail = Fail.fail
 
 bindCtors :: CtorEnv -> M t -> M t
 bindCtors (bitCtors, structCtors) = local (\(bitCtors', structCtors') ->
@@ -101,6 +105,23 @@ instance Sugared S.Type (Type Id)
               desugar (dislocate (app [introduced (S.TyCon "Select"), t, At p (S.TyLabel l)]))
               where app = foldl1 (\t t' -> at t (S.TyApp t t'))
           desugar e@(S.TyInfix head tail) = failWith $ text "Internal error: infix type at desugaring: " <+> ppr e
+          desugar (S.TySimpRow [(l,t)]) = do t' <- desugar t
+                                             return (TySimpRow [(l, t')])
+          desugar (S.TySimpRow ((l,t):xs)) = do y            <- desugar t
+                                                TySimpRow ys <- desugar (S.TySimpRow xs)
+                                                return (TySimpRow ((l,y):ys))
+          desugar (S.TyTrivRow [(l,t)]) = do t' <- desugar t
+                                             return (TyTrivRow [(l,t')])
+          desugar (S.TyTrivRow ((l,t):xs)) = do t' <- desugar t
+                                                TyTrivRow ys <- desugar (S.TyTrivRow xs)
+                                                return (TyTrivRow ((l,t'):ys))
+            -- failWith $ text "Internal error: trivial row at desugaring: " <+> ppr e
+          desugar (S.TyScopRow [(l,t)]) = do t' <- desugar t
+                                             return (TyScopRow [(l,t')])
+          desugar (S.TyScopRow ((l,t):xs)) = do t' <- desugar t
+                                                TyScopRow ys <- desugar (S.TyScopRow xs)
+                                                return (TyScopRow ((l,t'):ys))
+
 
 instance Sugared S.Pred (PredType PredFN Id)
     where desugar (S.Pred t mt f) =

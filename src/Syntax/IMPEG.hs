@@ -17,6 +17,9 @@ data Type id = TyCon id
              | TyNat Integer
              | TyKinded (Located (Type id)) (Located Kind)
              | TyLabel Id
+             | TyTrivRow [(Located Id, Located (Type id))]
+             | TySimpRow [(Located Id, Located (Type id))]
+             | TyScopRow [(Located Id, Located (Type id))]
                deriving (Eq, Show, Typeable, Data)
 
 flattenType :: Located (Type id) -> (Located (Type id), [Located (Type id)])
