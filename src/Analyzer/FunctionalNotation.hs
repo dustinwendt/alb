@@ -81,7 +81,25 @@ rewriteType t@(At loc (TyCon name)) =
          ClassArity 1 False ->
              failWithS "Invalid use of functional notation"
          _ -> return t
+rewriteType (At loc (TyTrivRow [(l,t)])) = do t' <- rewriteType t
+                                              return (At loc (TyTrivRow [(l, t')]))
+rewriteType (At loc (TyTrivRow ((l,t):xs))) = do t' <- rewriteType t
+                                                 ~(At loc (TyTrivRow ys)) <- rewriteType (At loc (TyTrivRow xs))
+                                                 return (At loc (TyTrivRow ([(l,t')] ++ ys)))
+rewriteType (At loc (TySimpRow [(l,t)])) = do t' <- rewriteType t
+                                              return (At loc (TyTrivRow [(l,t')]))
+rewriteType (At loc (TySimpRow ((l,t):xs))) = do t' <- rewriteType t
+                                                 ~(At loc (TySimpRow ys)) <- rewriteType (At loc (TySimpRow xs))
+                                                 return (At loc (TyTrivRow ([(l,t')] ++ ys)))
+rewriteType (At loc (TyScopRow [(l,t)])) = do t' <- rewriteType t
+                                              return (At loc (TyScopRow [(l,t')]))
+rewriteType (At loc (TyScopRow ((l,t):xs))) = do t' <- rewriteType t
+                                                 ~(At loc (TyScopRow ys)) <- rewriteType (At loc (TyScopRow xs))
+                                                 return (At loc (TyScopRow ([(l,t')] ++ ys)))
 rewriteType t = return t
+-- rewriteType (At loc (TyTrivRow xs)) =
+-- rewriteType (At loc (TySimpRow)) =
+-- rewriteType (At loc (TyScopRow [])) =
 
 rewritePredicate :: Located (PredType PredFN Id) -> WriterT [(Located (PredType Pred Id), Id)] M (Located (PredType Pred Id))
 rewritePredicate (At loc (PredFN name args marg flag)) =
