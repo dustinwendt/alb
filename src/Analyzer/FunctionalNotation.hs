@@ -97,9 +97,6 @@ rewriteType (At loc (TyScopRow ((l,t):xs))) = do t' <- rewriteType t
                                                  ~(At loc (TyScopRow ys)) <- rewriteType (At loc (TyScopRow xs))
                                                  return (At loc (TyScopRow ([(l,t')] ++ ys)))
 rewriteType t = return t
--- rewriteType (At loc (TyTrivRow xs)) =
--- rewriteType (At loc (TySimpRow)) =
--- rewriteType (At loc (TyScopRow [])) =
 
 rewritePredicate :: Located (PredType PredFN Id) -> WriterT [(Located (PredType Pred Id), Id)] M (Located (PredType Pred Id))
 rewritePredicate (At loc (PredFN name args marg flag)) =
